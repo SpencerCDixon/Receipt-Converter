@@ -26,29 +26,29 @@ text = codepen.transcribe
 sentences = text.split("\n")
 split_sentence = sentences[9].split(' ')
 
-
+new_sentence = []
 split_sentence.each do |w|
   # Try and fix an individual sentence
   speller  = FFI::Aspell.speller_new(FFI::Aspell.config_new)
   word     = w
   valid = FFI::Aspell.speller_check(speller, w, w.length)
   if valid
-    puts word
+    new_sentence << word
   else
-    puts "word is wrong"
+
+    list     = FFI::Aspell.speller_suggest(speller, word, word.length)
+    elements = FFI::Aspell.word_list_elements(list)
+    words    = []
+
+    while word = FFI::Aspell.string_enumeration_next(elements)
+      words << word
+      new_sentence << words[0]
+      break
+    end
+
+    FFI::Aspell.string_enumeration_delete(elements)
+    FFI::Aspell.speller_delete(speller)
   end
-
-
-#   list     = FFI::Aspell.speller_suggest(speller, word, word.length)
-#   elements = FFI::Aspell.word_list_elements(list)
-#   words    = []
-#
-#
-#   while word = FFI::Aspell.string_enumeration_next(elements)
-#     words << word
-#     binding.pry
-#   end
-#
-#   FFI::Aspell.string_enumeration_delete(elements)
-#   FFI::Aspell.speller_delete(speller)
 end
+
+puts new_sentence
